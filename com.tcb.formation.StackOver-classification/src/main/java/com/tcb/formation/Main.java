@@ -13,9 +13,16 @@ public class Main {
 		@SuppressWarnings("resource")
 		ApplicationContext context = new AnnotationConfigApplicationContext(
 				ApplicationConfig.class);
+		/**
+		 * The main method should take three parameters
+		 *  ++++ indice : should equal 1 if the database isn't created yet
+		 *  ++++ idQuestion : the id question
+		 *  ++++ label : the class of that question
+		 */
 		int indice = Integer.parseInt(args[0]);
 		long idQuestion = Long.parseLong(args[1]);
 		int label = Integer.parseInt(args[2]);
+		
 		HiveDAO dao = context.getBean(HiveDAO.class);
 		if (indice == 1)
 			dao.createDatabase();
