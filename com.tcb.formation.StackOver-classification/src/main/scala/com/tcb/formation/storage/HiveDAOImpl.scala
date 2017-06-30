@@ -39,10 +39,10 @@ class HiveDAOImpl extends HiveDAO {
 
   def getStopWords: java.util.List[StopWord] = sql("select * from so_classification.stopwords").as[StopWord].collectAsList
 
-  def getBagOfWords(): java.util.List[DictionaryWord] = sql("select * from so_classification.Dictionnaire").as[DictionaryWord].collectAsList
+  def getBagOfWords : java.util.List[DictionaryWord] = sql("select * from so_classification.Dictionnaire").as[DictionaryWord].collectAsList
 
   def stopWordExist(word: String): Boolean = sql(s"select * from $stopwordTable").filter(sw => sw != word).count() > 0
 
-  def createDatabase() = CreateDatabase.execute()
+  def createDatabase = CreateDatabase.execute()
 
 }
