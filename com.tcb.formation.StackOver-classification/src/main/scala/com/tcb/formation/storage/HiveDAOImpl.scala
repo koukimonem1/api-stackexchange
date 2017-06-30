@@ -16,6 +16,10 @@ class HiveDAOImpl extends HiveDAO {
 
   @Autowired
   val spark: SparkSession = null
+
+  import spark.implicits._
+  import spark.sql
+
   /**
    * tables name
    *
@@ -27,63 +31,18 @@ class HiveDAOImpl extends HiveDAO {
   @Value("${warehouse.stopwords.table}")
   val stopwordTable: String = null
 
-  def saveQuestion(question: Question) {
+  def saveQuestion(question: Question) = spark.createDataset(Seq(question)).write.mode(SaveMode.Append).insertInto(questionTable)
 
-    import spark.implicits._
+  def saveWords(words: Seq[DictionaryWord]) = words.toDS().write.mode(SaveMode.Append).insertInto(bowTable);
 
-    val questionDS = spark.createDataset(Seq(question))
-    questionDS.show()
-    questionDS.write
-      .mode(SaveMode.Append)
-      .insertInto(questionTable);
-  }
+  def saveStopWords(stopwords: Seq[StopWord]) = stopwords.toDS().write.mode(SaveMode.Append).insertInto(stopwordTable);
 
-  def saveWords(words: Seq[DictionaryWord]) {
+  def getStopWords: java.util.List[StopWord] = sql("select * from so_classification.stopwords").as[StopWord].collectAsList
 
-    import spark.implicits._
+  def getBagOfWords(): java.util.List[DictionaryWord] = sql("select * from so_classification.Dictionnaire").as[DictionaryWord].collectAsList
 
-    val wordDS = words.toDS()
-    wordDS.write
-      .mode(SaveMode.Append)
-      .insertInto(bowTable);
-  }
+  def stopWordExist(word: String): Boolean = sql(s"select * from $stopwordTable").filter(sw => sw != word).count() > 0
 
-  def saveStopWords(stopwords: Seq[StopWord]) {
-
-    import spark.implicits._
-
-    val wordDS = stopwords.toDS()
-    wordDS.write
-      .mode(SaveMode.Append)
-      .insertInto(stopwordTable);
-  }
-
-  def getStopWords: java.util.List[StopWord] = {
-
-    import spark.implicits._
-    import spark.sql
-
-    val stopWords = sql("select * from so_classification.stopwords").as[StopWord]
-    stopWords.collectAsList()
-  }
-
-  def getBagOfWords(): java.util.List[DictionaryWord] = {
-
-    import spark.implicits._
-    import spark.sql
-
-    val stopWords = sql("select * from so_classification.Dictionnaire").as[DictionaryWord]
-    stopWords.collectAsList()
-  }
-
-  def stopWordExist(word: String): Boolean = {
-
-    import spark.sql
-
-    val exist = sql(s"select * from $stopwordTable").filter(sw => sw != word).count() > 0
-    exist
-  }
-  
   def createDatabase() = CreateDatabase.execute()
-  
+
 }
