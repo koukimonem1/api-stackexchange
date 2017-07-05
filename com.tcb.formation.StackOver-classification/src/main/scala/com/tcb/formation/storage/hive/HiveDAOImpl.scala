@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Scope
 import org.springframework.stereotype.Service
-import com.tcb.formation.util.CreateDatabase
+import com.tcb.formation.util.HiveCreateDatabase
 import com.tcb.formation.storage.DictionaryWord
 import com.tcb.formation.storage.Question
 import com.tcb.formation.storage.StopWord
@@ -46,6 +46,6 @@ class HiveDAOImpl extends HiveDAO {
 
   def stopWordExist(word: String): Boolean = sql(s"select * from $stopwordTable").filter(sw => sw != word).count() > 0
 
-  def createDatabase = CreateDatabase.execute()
+  def createDatabase = HiveCreateDatabase.execute()
 
 }

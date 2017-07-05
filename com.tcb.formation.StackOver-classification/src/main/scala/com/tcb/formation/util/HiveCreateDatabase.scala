@@ -17,11 +17,11 @@ import javax.annotation.PostConstruct
 import org.springframework.stereotype.Component
 import org.springframework.context.annotation.Scope
 
-class CreateDatabase()
+class HiveCreateDatabase()
 
 @Component
 @Scope("singleton")
-object CreateDatabase {
+object HiveCreateDatabase {
   @Autowired
   var dao: HiveDAO = null
   @Value("${warehouse.database}")
