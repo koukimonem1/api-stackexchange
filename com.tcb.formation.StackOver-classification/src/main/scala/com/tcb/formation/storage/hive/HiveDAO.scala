@@ -1,8 +1,8 @@
-package com.tcb.formation.storage
+package com.tcb.formation.storage.hive
 
-import org.apache.spark.sql.SparkSession
-import org.springframework.context.annotation.Scope
-import org.springframework.stereotype.Component
+import com.tcb.formation.storage.DictionaryWord
+import com.tcb.formation.storage.Question
+import com.tcb.formation.storage.StopWord
 
 trait HiveDAO {
   def saveQuestion(question: Question)

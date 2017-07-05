@@ -27,7 +27,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.tcb.formation.storage.DictionaryWord;
-import com.tcb.formation.storage.HiveDAO;
+import com.tcb.formation.storage.hive.HiveDAO;
 import com.tcb.formation.storage.Question;
 import com.tcb.formation.storage.StopWord;
 import com.tcb.formation.util.ListAccumulator;

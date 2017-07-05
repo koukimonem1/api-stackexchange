@@ -1,7 +1,6 @@
-package com.tcb.formation.storage
+package com.tcb.formation.storage.hive
 
 import scala.reflect.runtime.universe
-
 import org.apache.spark.sql.SaveMode
 import org.apache.spark.sql.SparkSession
 import org.springframework.beans.factory.annotation.Autowired
@@ -9,6 +8,10 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Scope
 import org.springframework.stereotype.Service
 import com.tcb.formation.util.CreateDatabase
+import com.tcb.formation.storage.DictionaryWord
+import com.tcb.formation.storage.Question
+import com.tcb.formation.storage.StopWord
+import org.springframework.stereotype.Component
 
 @Service
 @Scope("singleton")
@@ -39,7 +42,7 @@ class HiveDAOImpl extends HiveDAO {
 
   def getStopWords: java.util.List[StopWord] = sql("select * from so_classification.stopwords").as[StopWord].collectAsList
 
-  def getBagOfWords : java.util.List[DictionaryWord] = sql("select * from so_classification.Dictionnaire").as[DictionaryWord].collectAsList
+  def getBagOfWords: java.util.List[DictionaryWord] = sql("select * from so_classification.Dictionnaire").as[DictionaryWord].collectAsList
 
   def stopWordExist(word: String): Boolean = sql(s"select * from $stopwordTable").filter(sw => sw != word).count() > 0
 

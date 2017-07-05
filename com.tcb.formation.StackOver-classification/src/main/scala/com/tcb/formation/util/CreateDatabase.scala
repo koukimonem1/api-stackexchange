@@ -4,9 +4,9 @@ import org.apache.spark.ml.feature.StopWordsRemover
 import org.apache.spark.sql.SparkSession
 import org.springframework.beans.factory.annotation.Autowired
 
-import com.tcb.formation.storage.HiveDAO
+import com.tcb.formation.storage.hive.HiveDAO
 import com.tcb.formation.storage.StopWord
-import com.tcb.formation.storage.HiveDAOImpl
+import com.tcb.formation.storage.hive.HiveDAOImpl
 import org.apache.spark.SparkConf
 import org.apache.spark.SparkContext
 import org.springframework.context.annotation.AnnotationConfigApplicationContext

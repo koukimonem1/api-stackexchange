@@ -4,7 +4,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import com.tcb.formation.services.QuestionService;
-import com.tcb.formation.storage.HiveDAO;
+import com.tcb.formation.storage.hive.HiveDAO;
 import com.tcb.formation.storage.Question;
 
 public class Main {
@@ -15,7 +15,7 @@ public class Main {
 				ApplicationConfig.class);
 		/**
 		 * The main method should take three parameters
-		 *  ++++ indice : should equal 1 if the database isn't created yet
+		 *  ++++ indice : should be equal 1 if the database isn't created yet
 		 *  ++++ idQuestion : the id question
 		 *  ++++ label : the class of that question
 		 */
