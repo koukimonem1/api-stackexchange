@@ -7,7 +7,7 @@ import com.tcb.formation.services.QuestionService;
 import com.tcb.formation.storage.hive.HiveDAO;
 import com.tcb.formation.storage.Question;
 
-public class Main {
+public class HiveMain {
 
 	public static void main(String[] args) {
 		@SuppressWarnings("resource")
@@ -27,7 +27,7 @@ public class Main {
 		if (indice == 1)
 			dao.createDatabase();
 		QuestionService service = context.getBean(QuestionService.class);
-		Question question = service.getQuestion(idQuestion, label);
+		Question question = service.getQuestion(idQuestion, label, "hive");
 		dao.saveQuestion(question);
 	}
 

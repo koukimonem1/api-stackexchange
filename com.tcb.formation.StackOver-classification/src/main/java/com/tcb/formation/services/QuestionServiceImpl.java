@@ -27,7 +27,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.tcb.formation.storage.DictionaryWord;
-import com.tcb.formation.storage.hive.HiveDAO;
+import com.tcb.formation.storage.OperationDAO;
+import com.tcb.formation.storage.OperationDAOFactory;
 import com.tcb.formation.storage.Question;
 import com.tcb.formation.storage.StopWord;
 import com.tcb.formation.util.ListAccumulator;
@@ -36,7 +37,7 @@ import com.tcb.formation.util.ListAccumulator;
 @Scope("singleton")
 public class QuestionServiceImpl implements QuestionService {
 	@Autowired
-	private HiveDAO dao;
+	private OperationDAOFactory factory;
 	private Stemmer stemmer = new Stemmer();
 	private List<DictionaryWord> bow;
 	private ListAccumulator<StopWord> newStopWords = new ListAccumulator<StopWord>();
@@ -46,11 +47,11 @@ public class QuestionServiceImpl implements QuestionService {
 	@Value("${stackexchange.question.body}")
 	private String questionBody;
 
-	public Question getQuestion(Long id, int label) {
+	public Question getQuestion(Long id, int label,String type) {
 		Question question = null;
 		List<String> tags = new ArrayList<String>();
 		String body = "";
-
+		OperationDAO dao = factory.getOperationDao(type);
 		String urlString = urlQuestion + id + questionBody;
 		List<StopWord> listSW = new ArrayList<StopWord>(dao.getStopWords());
 		ObjectMapper mapper = new ObjectMapper();
@@ -79,17 +80,16 @@ public class QuestionServiceImpl implements QuestionService {
 					tagsJson = objNode.get("tags");
 					body = body.replaceAll("<a .*?/>", " ")
 							.replaceAll("<code>.*?</code>", " ")
-							.replaceAll("<.*?>", " ")
-							.replaceAll("\\\\n", " ")
-							.replaceAll("\"", " ")
-							.replaceAll("/", " ")
-							.replaceAll("&", " ")
-							.replaceAll("\\\\", " ")
-							.replaceAll("#"," ")
-							.replaceAll("-"," ")
-							.replaceAll("['=()?:!.,;{}*0-9]+", " ")	// remove special characters in java regex
-                            .replaceAll("\\[", " ")
-							.replaceAll("\\]", " ")
+							.replaceAll("<.*?>", " ").replaceAll("\\\\n", " ")
+							.replaceAll("\"", " ").replaceAll("/", " ")
+							.replaceAll("&", " ").replaceAll("\\\\", " ")
+							.replaceAll("#", " ").replaceAll("-", " ")
+							.replaceAll("['=()?:!.,;{}*0-9]+", " ") // remove
+																	// special
+																	// characters
+																	// in java
+																	// regex
+							.replaceAll("\\[", " ").replaceAll("\\]", " ")
 
 							.toLowerCase();
 
@@ -156,7 +156,7 @@ public class QuestionServiceImpl implements QuestionService {
 			question = new Question(id, JavaConversions.asScalaBuffer(
 					stemmedBody).seq(), JavaConversions.asScalaBuffer(tags)
 					.seq(), label);
-			
+
 			/****************************************************/
 
 			conn.disconnect();
@@ -178,12 +178,12 @@ public class QuestionServiceImpl implements QuestionService {
 		}
 	};
 
-	public HiveDAO getDao() {
-		return dao;
+	public OperationDAOFactory getFactory() {
+		return factory;
 	}
 
-	public void setDao(HiveDAO dao) {
-		this.dao = dao;
+	public void setFactory(OperationDAOFactory factory) {
+		this.factory = factory;
 	}
 
 }
