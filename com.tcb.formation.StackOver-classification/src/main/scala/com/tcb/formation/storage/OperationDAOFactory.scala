@@ -1,19 +1,17 @@
 package com.tcb.formation.storage
 
-import org.springframework.beans.factory.config.AbstractFactoryBean
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.Scope
 import org.springframework.stereotype.Component
-import javax.annotation.Resource;
+
+import com.tcb.formation.storage.hbase.HbaseDAO
+import com.tcb.formation.storage.hive.HiveDAO
+
 @Component
 class OperationDAOFactory {
-  def getOperationDao(typeOpeartion: String): OperationDAO = {
-    if (typeOpeartion == "hive") {
-      @Resource(name = "hiveDAO")
-      var operation: OperationDAO = null
-      operation
-    } else {
-      @Resource(name = "hbaseDAO")
-      var operation: OperationDAO = null
-      operation
-    }
-  }
+  @Autowired
+  val operationHive: HiveDAO = null
+  @Autowired
+  val operationHbase: HbaseDAO = null
+  def getOperationDao(typeOpeartion: String): OperationDAO = if (typeOpeartion == "hive") operationHive else operationHbase
 }

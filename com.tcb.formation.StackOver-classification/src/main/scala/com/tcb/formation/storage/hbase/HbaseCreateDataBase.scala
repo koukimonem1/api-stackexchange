@@ -1,16 +1,15 @@
 package com.tcb.formation.storage.hbase
 
-import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.hbase.HColumnDescriptor
 import org.apache.hadoop.hbase.HTableDescriptor
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client.ConnectionFactory
-import org.apache.spark.SparkConf
-import org.apache.spark.SparkContext
 import org.apache.spark.ml.feature.StopWordsRemover
+import org.apache.spark.sql.SparkSession
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Scope
 import org.springframework.stereotype.Component
+
 
 class HbaseCreateDataBase()
 
@@ -18,19 +17,18 @@ class HbaseCreateDataBase()
 @Scope("singleton")
 object HbaseCreateDataBase{
   @Autowired
-  val sc: SparkContext = null
+  val session: SparkSession = null
   def init: Unit = {
-    val connection = ConnectionFactory.createConnection(sc.hadoopConfiguration)
+    val connection = ConnectionFactory.createConnection(session.sparkContext.hadoopConfiguration)
 
     /**
      * Create question table
      */
 
     val questionTable = new HTableDescriptor(TableName.valueOf("question"))
-    questionTable.addFamily(new HColumnDescriptor("id"))
+    questionTable.addFamily(new HColumnDescriptor("identity"))
     questionTable.addFamily(new HColumnDescriptor("body"))
     questionTable.addFamily(new HColumnDescriptor("tags"))
-    questionTable.addFamily(new HColumnDescriptor("label"))
     connection.getAdmin.createTable(questionTable)
 
     /**
@@ -45,6 +43,6 @@ object HbaseCreateDataBase{
 
     val remover = new StopWordsRemover()
     val stopWords = remover.getStopWords.filter(word => !word.equals("how"))
-    sc.parallelize(stopWords).saveAsTextFile("hdfs://127.0.1.1:8020/user/kouki/stopwords")
+    session.sparkContext.parallelize(stopWords).saveAsTextFile("hdfs://127.0.1.1:8020/user/kouki/stopwords")
   }
 }

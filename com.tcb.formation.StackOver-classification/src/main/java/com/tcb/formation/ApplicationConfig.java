@@ -1,6 +1,8 @@
 package com.tcb.formation;
 
-import org.apache.spark.SparkContext;
+import java.io.IOException;
+
+import org.apache.hadoop.mapreduce.Job;
 import org.apache.spark.sql.SparkSession;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -9,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.PropertySource;
 
-import com.tcb.formation.storage.hbase.HbaseDao;
+import com.tcb.formation.storage.hbase.HbaseDAO;
 import com.tcb.formation.storage.hive.HiveDAO;
 
 @Configuration
@@ -29,22 +31,23 @@ public class ApplicationConfig {
 
 	@Bean
 	@DependsOn("getSparkSession")
-	public SparkContext getHbaseConfiguration() {
-		getSparkSession().conf().set("hbase.zookeeper.quorum", "127.0.1.1");
-		getSparkSession().conf().set("hbase.zookeeper.property.clientPort",
-				"2181");
-		getSparkSession().conf().set("zookeeper.znode.parent",
-				"/hbase-unsecure");
-		return getSparkSession().sparkContext();
+	public Job getJob() throws IOException {
+		Job job = Job.getInstance(getSparkSession().sparkContext()
+				.hadoopConfiguration());
+		job.getConfiguration().set("hbase.zookeeper.quorum", "127.0.1.1");
+		job.getConfiguration().set("hbase.zookeeper.property.clientPort","2181");
+		job.getConfiguration().set("zookeeper.znode.parent", "/hbase-unsecure");
+		job.setOutputFormatClass(org.apache.hadoop.hbase.mapreduce.TableOutputFormat.class);
+		return job;
 	}
 
 	@Bean("hiveDAO")
 	public HiveDAO getHiveDao() {
 		return new HiveDAO();
 	}
-	
+
 	@Bean("hbaseDAO")
-	public HbaseDao getHbaseDao() {
-		return new HbaseDao();
+	public HbaseDAO getHbaseDao() {
+		return new HbaseDAO();
 	}
 }
