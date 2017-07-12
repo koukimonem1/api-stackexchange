@@ -67,7 +67,6 @@ public class QuestionServiceImpl implements QuestionService {
 					new InputStreamReader(ginput));
 			String jsonString;
 			jsonString = br.readLine();
-
 			JsonNode jsonNode = mapper.readTree(jsonString);
 			JsonNode itemsJson = mapper.readTree(jsonNode.get("items")
 					.toString());
@@ -80,19 +79,18 @@ public class QuestionServiceImpl implements QuestionService {
 					tagsJson = objNode.get("tags");
 					body = body.replaceAll("<a .*?/>", " ")
 							.replaceAll("<code>.*?</code>", " ")
-							.replaceAll("<.*?>", " ").replaceAll("\\\\n", " ")
-							.replaceAll("\"", " ").replaceAll("/", " ")
-							.replaceAll("&", " ").replaceAll("\\\\", " ")
-							.replaceAll("#", " ").replaceAll("-", " ")
-							.replaceAll("['=()?:!.,;{}*0-9]+", " ") // remove
-																	// special
-																	// characters
-																	// in java
-																	// regex
-							.replaceAll("\\[", " ").replaceAll("\\]", " ")
-
+							.replaceAll("<.*?>", " ")
+							.replaceAll("\\\\n", " ")
+							.replaceAll("\"", " ")
+							.replaceAll("/", " ")
+							.replaceAll("&", " ")
+							.replaceAll("\\\\", " ")
+							.replaceAll("#", " ")
+							.replaceAll("-", " ")
+							.replaceAll("['=()?:!.,;{}*0-9]+", " ") 
+							.replaceAll("\\[", " ")
+							.replaceAll("\\]", " ")
 							.toLowerCase();
-
 					if (tagsJson.isArray()) {
 						for (final JsonNode tagNode : tagsJson) {
 							tags.add(tagNode.textValue());
@@ -126,15 +124,16 @@ public class QuestionServiceImpl implements QuestionService {
 					.split(" +")));
 			Iterator<String> itrWords = words.iterator();
 			while (itrWords.hasNext()) {
-				StopWord word = new StopWord(itrWords.next());
+				String sw = itrWords.next();
+				StopWord word = new StopWord(sw);
 				if (listSW.contains(word)) {
 					itrWords.remove();
 				}
 			}
 
-			/***************************************************************
-			 * Stemming + save words that does not exist in the dictionary
-			 * **************************************************************/
+			/**************************************************************************************
+			 * Stemming + save words that does not exist in the dictionary when we are using hive
+			 * ************************************************************************************/
 
 			bow = new ArrayList<DictionaryWord>(dao.getBagOfWords());
 			List<String> stemmedBody = new ArrayList<String>(Lists.transform(
@@ -142,7 +141,8 @@ public class QuestionServiceImpl implements QuestionService {
 			Iterator<String> stemmedIterator = stemmedBody.iterator();
 			while (stemmedIterator.hasNext()) {
 				DictionaryWord word = new DictionaryWord(stemmedIterator.next());
-				if (!bow.contains(word)) {
+				if ((!bow.contains(word) && type.equals("hive"))
+						|| type.equals("hbase")) {
 					newWords.add(new ArrayList<DictionaryWord>(Collections
 							.singleton(word)));
 					bow.add(word);
