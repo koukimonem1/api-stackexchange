@@ -24,6 +24,7 @@
 		<hive.version>1.2.1</hive.version>
 		<hbase.version>1.1.2</hbase.version>
 		<spring.version>4.3.7.RELEASE</spring.version>
+		<phoenix.version>4.7.0-HBase-1.1</phoenix.version>
 	</properties>
 	<!-- <parent> -->
 	<!-- <groupId>org.springframework.boot</groupId> -->
@@ -105,6 +106,7 @@
 			<artifactId>spark-core_2.11</artifactId>
 			<version>${spark.version}</version>
 		</dependency>
+
 		<!-- hbase -->
 		<dependency>
 			<groupId>org.apache.hbase</groupId>
@@ -123,6 +125,16 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
+		<!-- <dependency> -->
+		<!-- <groupId>org.apache.phoenix</groupId> -->
+		<!-- <artifactId>phoenix-core</artifactId> -->
+		<!-- <version>${phoenix.version}</version> -->
+		<!-- </dependency> -->
+		<!-- <dependency> -->
+		<!-- <groupId>org.apache.phoenix</groupId> -->
+		<!-- <artifactId>phoenix-server-client</artifactId> -->
+		<!-- <version>${phoenix.version}</version> -->
+		<!-- </dependency> -->
 	</dependencies>
 	<build>
 		<!-- Scala plugins -->

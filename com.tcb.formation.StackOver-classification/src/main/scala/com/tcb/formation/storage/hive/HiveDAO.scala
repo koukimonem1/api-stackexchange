@@ -49,4 +49,13 @@ class HiveDAO extends OperationDAO {
 
   def createDatabase = HiveCreateDatabase.execute()
 
+  def getDF(word: DictionaryWord): Int = ???
+
+  def getTF(word: DictionaryWord, question: Question): Int = ???
+
+  def getNormCorpus(): Int = ???
+
+  def getCentroid(label: Int): Map[String, Float] = ???
+
+  def getDFs(): java.util.List[String] = ???
 }
