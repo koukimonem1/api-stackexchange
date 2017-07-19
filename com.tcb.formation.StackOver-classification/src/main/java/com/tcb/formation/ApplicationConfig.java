@@ -25,9 +25,12 @@ public class ApplicationConfig {
 
 	@Bean
 	public SparkSession getSparkSession() {
-		return SparkSession.builder().appName("stack overflow classification")
+		return SparkSession
+				.builder()
+				.appName("stack overflow classification")
 				.config("spark.sql.warehouse.dir", dbWarehouse)
-				.enableHiveSupport().master("local[*]").getOrCreate();
+				.enableHiveSupport().master("local[*]")
+				.getOrCreate();
 	}
 
 	@Bean

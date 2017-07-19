@@ -46,6 +46,7 @@ public class QuestionServiceImpl implements QuestionService {
 	private String urlQuestion;
 	@Value("${stackexchange.question.body}")
 	private String questionBody;
+	ObjectMapper mapper = new ObjectMapper();
 
 	public Question getQuestion(Long id, int label,String type) {
 		Question question = null;
@@ -54,7 +55,6 @@ public class QuestionServiceImpl implements QuestionService {
 		OperationDAO dao = factory.getOperationDao(type);
 		String urlString = urlQuestion + id + questionBody;
 		List<StopWord> listSW = new ArrayList<StopWord>(dao.getStopWords());
-		ObjectMapper mapper = new ObjectMapper();
 		try {
 			URL url = new URL(urlString);
 			URLConnection con = url.openConnection();
@@ -178,6 +178,40 @@ public class QuestionServiceImpl implements QuestionService {
 		}
 	};
 
+	public List<Integer> getStreamingIds() {
+		List<Integer> listIds = new ArrayList<Integer>();
+		String urlString = "https://api.stackexchange.com/2.2/questions?order=desc&sort=activity&site=stackoverflow";
+		try {
+			URL url = new URL(urlString);
+			URLConnection con = url.openConnection();
+			InputStream in = con.getInputStream();
+			GZIPInputStream ginput = new GZIPInputStream(in);
+			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+			conn.setRequestMethod("GET");
+			conn.setRequestProperty("Accept", "application/json");
+			BufferedReader br = new BufferedReader(
+					new InputStreamReader(ginput));
+			String jsonString;
+			jsonString = br.readLine();
+			JsonNode jsonNode = mapper.readTree(jsonString);
+			JsonNode itemsJson = mapper.readTree(jsonNode.get("items")
+					.toString());
+			if (itemsJson.isArray()) {
+				for (final JsonNode objNode : itemsJson) {
+					Integer id = Integer.parseInt(objNode.get("question_id")
+							.toString());
+					listIds.add(id);
+				}
+			}
+			conn.disconnect();
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return listIds;
+	}
+	
 	public OperationDAOFactory getFactory() {
 		return factory;
 	}
