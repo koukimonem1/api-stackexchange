@@ -55,7 +55,7 @@ class HiveDAO extends OperationDAO {
 
   def getNormCorpus(): Int = ???
 
-  def getCentroid(label: Int): Map[String, Float] = ???
+  def getCentroidAcc(label: Int): Map[String, Float] = ???
 
-  def getDFs(): java.util.List[String] = ???
+  def getDFs(): Map[String, Int] = ???
 }

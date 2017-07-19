@@ -10,6 +10,6 @@ trait OperationDAO {
   def getDF(word: DictionaryWord): Int
   def getTF(word: DictionaryWord, question: Question): Int
   def getNormCorpus(): Int
-  def getCentroid(label: Int) : Map[String, Int]
-  def getDFs(): Map[String, Float]
+  def getCentroidAcc(label: Int) : Map[String, Float]
+  def getDFs(): Map[String, Int]
 }

@@ -1,5 +1,7 @@
 package com.tcb.formation.storage.hbase
 
+import scala.collection.immutable.HashMap
+
 import org.apache.hadoop.hbase.HBaseConfiguration
 import org.apache.hadoop.hbase.HTableDescriptor
 import org.apache.hadoop.hbase.TableName
@@ -13,6 +15,7 @@ import org.apache.hadoop.hbase.mapred.TableOutputFormat
 import org.apache.hadoop.hbase.mapreduce.TableInputFormat
 import org.apache.hadoop.hbase.util.Bytes
 import org.apache.hadoop.mapreduce.Job
+import org.apache.spark.annotation.InterfaceStability
 import org.apache.spark.rdd.RDD.rddToPairRDDFunctions
 import org.apache.spark.sql.SparkSession
 import org.springframework.beans.factory.annotation.Autowired
@@ -24,8 +27,7 @@ import com.tcb.formation.storage.DictionaryWord
 import com.tcb.formation.storage.OperationDAO
 import com.tcb.formation.storage.Question
 import com.tcb.formation.storage.StopWord
-import scala.collection.immutable.HashMap
-
+import scala.math._
 @Component
 @Scope("singleton")
 class HbaseDAO extends OperationDAO with java.io.Serializable {
@@ -90,7 +92,35 @@ class HbaseDAO extends OperationDAO with java.io.Serializable {
     vectorDF
   }
 
-  def getCentroid(label: Int): Map[String, Int] = ???
+  def getCentroidAcc(label: Int): Map[String, Float] = {
+    val dfs = getDFs
+    val keys = dfs.keySet
+    var vectorCentroid: Map[String, Float] = new HashMap[String, Float]
+    val normeCorpus = getNormCorpus
+    val conf = HBaseConfiguration.create()
+    val tableName = "question"
+    conf.set("hbase.zookeeper.quorum", "127.0.1.1")
+    conf.set("zookeeper.znode.parent", "/hbase-unsecure")
+    conf.set(TableInputFormat.INPUT_TABLE, tableName)
+    val admin = new HBaseAdmin(conf)
+    if (!admin.isTableAvailable(tableName)) {
+      val tableDesc = new HTableDescriptor(tableName)
+      admin.createTable(tableDesc)
+    }
+    val hBaseRDD = spark.sparkContext.newAPIHadoopRDD(conf, classOf[TableInputFormat], classOf[ImmutableBytesWritable], classOf[Result])
+    hBaseRDD.values
+      .map { res =>
+        keys.foreach { word =>
+          val bytesTF = res.getValue(Bytes.toBytes("body"), Bytes.toBytes(word))
+          val currentTF = if (bytesTF != null) new String(bytesTF).toInt else 0
+          val df = dfs(word)
+          val oldSumDF = vectorCentroid(word)
+          val newDF = (oldSumDF + (currentTF * log(normeCorpus / df))).toFloat
+          vectorCentroid += ((word, newDF))
+        }
+      }
+    vectorCentroid
+  }
 
   def getStopWords: java.util.List[com.tcb.formation.storage.StopWord] = {
     val conf = HBaseConfiguration.create()
