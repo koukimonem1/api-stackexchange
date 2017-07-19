@@ -28,6 +28,8 @@ import com.tcb.formation.storage.OperationDAO
 import com.tcb.formation.storage.Question
 import com.tcb.formation.storage.StopWord
 import scala.math._
+import org.apache.hadoop.conf.Configuration
+
 @Component
 @Scope("singleton")
 class HbaseDAO extends OperationDAO with java.io.Serializable {
@@ -36,22 +38,16 @@ class HbaseDAO extends OperationDAO with java.io.Serializable {
   val spark: SparkSession = null
   @Autowired
   val job: Job = null
+  @Autowired
+  val conf: Configuration = null
   @Value("${stopwords.path.hdfs}")
   val pathSW: String = null
 
   def createDatabase(): Unit = HbaseCreateDataBase.init
 
   def getBagOfWords: java.util.List[com.tcb.formation.storage.DictionaryWord] = {
-    val conf = HBaseConfiguration.create()
     val tableName = "dictionary"
-    conf.set("hbase.zookeeper.quorum", "127.0.1.1")
-    conf.set("zookeeper.znode.parent", "/hbase-unsecure")
-    conf.set(TableInputFormat.INPUT_TABLE, tableName)
-    val admin = new HBaseAdmin(conf)
-    if (!admin.isTableAvailable(tableName)) {
-      val tableDesc = new HTableDescriptor(tableName)
-      admin.createTable(tableDesc)
-    }
+    createAdmin(tableName)
     var listWords: java.util.List[com.tcb.formation.storage.DictionaryWord] = new java.util.ArrayList[com.tcb.formation.storage.DictionaryWord]
     val hBaseRDDResult = spark.sparkContext
       .newAPIHadoopRDD(conf, classOf[TableInputFormat], classOf[ImmutableBytesWritable], classOf[Result])
@@ -73,17 +69,9 @@ class HbaseDAO extends OperationDAO with java.io.Serializable {
   def getTF(word: DictionaryWord, question: Question): Int = ???
 
   def getDFs(): Map[String, Int] = {
-    var vectorDF: Map[String, Int] = new HashMap[String, Int]
-    val conf = HBaseConfiguration.create()
     val tableName = "dictionary"
-    conf.set("hbase.zookeeper.quorum", "127.0.1.1")
-    conf.set("zookeeper.znode.parent", "/hbase-unsecure")
-    conf.set(TableInputFormat.INPUT_TABLE, tableName)
-    val admin = new HBaseAdmin(conf)
-    if (!admin.isTableAvailable(tableName)) {
-      val tableDesc = new HTableDescriptor(tableName)
-      admin.createTable(tableDesc)
-    }
+    createAdmin(tableName)
+    var vectorDF: Map[String, Int] = new HashMap[String, Int]
     val hBaseRDD = spark.sparkContext.newAPIHadoopRDD(conf, classOf[TableInputFormat], classOf[ImmutableBytesWritable], classOf[Result])
     hBaseRDD.values
       .map(res => (new String(res.getRow), new String(res.getValue(Bytes.toBytes("df"), Bytes.toBytes("df"))).toInt))
@@ -97,16 +85,8 @@ class HbaseDAO extends OperationDAO with java.io.Serializable {
     val keys = dfs.keySet
     var vectorCentroid: Map[String, Float] = new HashMap[String, Float]
     val normeCorpus = getNormCorpus
-    val conf = HBaseConfiguration.create()
     val tableName = "question"
-    conf.set("hbase.zookeeper.quorum", "127.0.1.1")
-    conf.set("zookeeper.znode.parent", "/hbase-unsecure")
-    conf.set(TableInputFormat.INPUT_TABLE, tableName)
-    val admin = new HBaseAdmin(conf)
-    if (!admin.isTableAvailable(tableName)) {
-      val tableDesc = new HTableDescriptor(tableName)
-      admin.createTable(tableDesc)
-    }
+    createAdmin(tableName)
     val hBaseRDD = spark.sparkContext.newAPIHadoopRDD(conf, classOf[TableInputFormat], classOf[ImmutableBytesWritable], classOf[Result])
     hBaseRDD.values
       .map { res =>
@@ -123,16 +103,8 @@ class HbaseDAO extends OperationDAO with java.io.Serializable {
   }
 
   def getStopWords: java.util.List[com.tcb.formation.storage.StopWord] = {
-    val conf = HBaseConfiguration.create()
     val tableName = "stopwords"
-    conf.set("hbase.zookeeper.quorum", "127.0.1.1")
-    conf.set("zookeeper.znode.parent", "/hbase-unsecure")
-    conf.set(TableInputFormat.INPUT_TABLE, tableName)
-    val admin = new HBaseAdmin(conf)
-    if (!admin.isTableAvailable(tableName)) {
-      val tableDesc = new HTableDescriptor(tableName)
-      admin.createTable(tableDesc)
-    }
+    createAdmin(tableName)
     val hBaseRDD = spark.sparkContext.newAPIHadoopRDD(conf, classOf[TableInputFormat], classOf[ImmutableBytesWritable], classOf[Result])
     var listSW: java.util.List[com.tcb.formation.storage.StopWord] = new java.util.ArrayList[com.tcb.formation.storage.StopWord]
     hBaseRDD.values.map(res => res.getValue(Bytes.toBytes("exist"), Bytes.toBytes("exist"))).collect().foreach { sw => listSW.add(StopWord(new String(sw))) }
@@ -140,16 +112,8 @@ class HbaseDAO extends OperationDAO with java.io.Serializable {
   }
 
   def getNormCorpus(): Int = {
-    val conf = HBaseConfiguration.create()
     val tableName = "question"
-    conf.set("hbase.zookeeper.quorum", "127.0.1.1")
-    conf.set("zookeeper.znode.parent", "/hbase-unsecure")
-    conf.set(TableInputFormat.INPUT_TABLE, tableName)
-    val admin = new HBaseAdmin(conf)
-    if (!admin.isTableAvailable(tableName)) {
-      val tableDesc = new HTableDescriptor(tableName)
-      admin.createTable(tableDesc)
-    }
+    createAdmin(tableName)
     val hBaseRDD = spark.sparkContext.newAPIHadoopRDD(conf, classOf[TableInputFormat], classOf[ImmutableBytesWritable], classOf[Result])
     hBaseRDD.values.map(res => res.getValue(Bytes.toBytes("identity"), Bytes.toBytes("id"))).count().toInt
   }
@@ -196,5 +160,14 @@ class HbaseDAO extends OperationDAO with java.io.Serializable {
         table.put(put)
       }
     connection.close()
+  }
+
+  def createAdmin(tableName: String) = {
+    conf.set(TableInputFormat.INPUT_TABLE, tableName)
+    val admin = new HBaseAdmin(conf)
+    if (!admin.isTableAvailable(tableName)) {
+      val tableDesc = new HTableDescriptor(tableName)
+      admin.createTable(tableDesc)
+    }
   }
 }
