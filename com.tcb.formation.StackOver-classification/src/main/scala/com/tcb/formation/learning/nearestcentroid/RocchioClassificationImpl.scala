@@ -17,7 +17,7 @@ class RocchioClassificationImpl extends RocchioClassification {
     val vectorQuestion = training.getQuestionVector(question)
     val vectorCentroid = training.getCentroid(label)
     vectorCentroid.foreach { (couple: (String, Float)) => { distance = distance + pow(couple._2 - vectorQuestion(couple._1), 2).toFloat } }
-    distance
+    sqrt(distance).toInt
   }
 
   def deducateClass(question: Question): Int = {
